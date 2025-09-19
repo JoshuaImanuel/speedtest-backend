@@ -4,9 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"time"
 
 	"github.com/rs/cors"
 )
@@ -19,7 +17,6 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler untuk tes download
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	// Buat data acak sebesar 100MB
 	dataSize := 100 * 1024 * 1024
 	randomData := make([]byte, dataSize)
 	rand.Read(randomData)
@@ -31,8 +28,6 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler untuk tes upload
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
-	// Baca dan buang seluruh body dari request untuk mengukur upload
-	// io.Copy dengan io.Discard adalah cara paling efisien
 	_, err := io.Copy(io.Discard, r.Body)
 	if err != nil {
 		http.Error(w, "Failed to read upload data", http.StatusInternalServerError)
@@ -43,29 +38,21 @@ func uploadHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `{"status":"ok"}`)
 }
 
-func main() {
+// Handler utama yang akan dipanggil oleh Vercel
+func Handler(w http.ResponseWriter, r *http.Request) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ping", pingHandler)
 	mux.HandleFunc("/download", downloadHandler)
 	mux.HandleFunc("/upload", uploadHandler)
 
-	// Konfigurasi CORS agar frontend bisa mengakses
+	// Konfigurasi CORS
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"}, // Izinkan semua
+		AllowedOrigins: []string{"*"},
 		AllowedMethods: []string{"GET", "POST"},
 	})
 	handler := c.Handler(mux)
 
-	port := "8080"
-	fmt.Printf("Go server running on port %s\n", port)
-	
-	// Gunakan server kustom untuk mengatur timeout
-	server := &http.Server{
-		Addr:         ":" + port,
-		Handler:      handler,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
-	}
-
-	log.Fatal(server.ListenAndServe())
+	// Jalankan handler yang sudah dibungkus CORS
+	handler.ServeHTTP(w, r)
 }
+
