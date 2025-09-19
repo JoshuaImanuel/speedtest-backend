@@ -17,7 +17,9 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler untuk tes download
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	dataSize := 100 * 1024 * 1024
+	// --- PERUBAHAN DI SINI ---
+	// Mengurangi ukuran data dari 100MB menjadi 25MB agar tidak timeout di Vercel
+	dataSize := 25 * 1024 * 1024
 	randomData := make([]byte, dataSize)
 	rand.Read(randomData)
 
@@ -55,5 +57,4 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// Jalankan handler yang sudah dibungkus CORS
 	handler.ServeHTTP(w, r)
 }
-
 
