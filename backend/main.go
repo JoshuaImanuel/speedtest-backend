@@ -17,15 +17,32 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler untuk tes download
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	// --- PERUBAHAN DI SINI ---
-	// Mengurangi ukuran data dari 100MB menjadi 25MB agar tidak timeout di Vercel
-	dataSize := 25 * 1024 * 1024
-	randomData := make([]byte, dataSize)
-	rand.Read(randomData)
+	// Total ukuran data yang akan dikirim
+	totalSize := 25 * 1024 * 1024 
+	
+	// Ukuran setiap potongan data (misal: 1MB)
+	chunkSize := 1 * 1024 * 1024 
+	chunk := make([]byte, chunkSize)
 
+	// Set header terlebih dahulu
 	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Length", fmt.Sprintf("%d", dataSize))
-	w.Write(randomData)
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", totalSize))
+
+	// Kirim data dalam potongan-potongan kecil
+	for bytesSent := 0; bytesSent < totalSize; bytesSent += chunkSize {
+		// Isi potongan dengan data acak
+		rand.Read(chunk)
+		// Tulis potongan ke response
+		_, err := w.Write(chunk)
+		if err != nil {
+			// Hentikan jika koneksi dari klien terputus
+			return
+		}
+		// Flush data untuk memastikan data terkirim langsung (penting)
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+	}
 }
 
 // Handler untuk tes upload
