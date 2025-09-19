@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"crypto/rand"
@@ -55,4 +55,5 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	// Jalankan handler yang sudah dibungkus CORS
 	handler.ServeHTTP(w, r)
 }
+
 
