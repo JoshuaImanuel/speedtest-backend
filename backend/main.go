@@ -17,8 +17,10 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler untuk tes download (versi paling stabil untuk Vercel)
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-	totalSize := 25 * 1024 * 1024      // Total 25MB
-	chunkSize := 256 * 1024           // Potongan 256KB
+    // --- PERUBAHAN DI SINI ---
+	// Mengurangi ukuran total menjadi 10MB untuk memastikan stabilitas
+	totalSize := 10 * 1024 * 1024      
+	chunkSize := 256 * 1024           
 	chunk := make([]byte, chunkSize)
 
 	w.Header().Set("Content-Type", "application/octet-stream")
@@ -31,25 +33,16 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for bytesSent := 0; bytesSent < totalSize; bytesSent += chunkSize {
-		// Menentukan ukuran potongan terakhir jika tidak pas
 		remaining := totalSize - bytesSent
 		if remaining < chunkSize {
 			chunk = make([]byte, remaining)
 		}
-
-		// Isi potongan dengan data acak
 		if _, err := rand.Read(chunk); err != nil {
-			// Jika ada masalah saat membuat data acak, hentikan
 			return
 		}
-
-		// Tulis potongan ke response
 		if _, err := w.Write(chunk); err != nil {
-			// Hentikan jika koneksi dari klien terputus (paling penting)
 			return
 		}
-		
-		// Flush data untuk memastikan data terkirim langsung
 		flusher.Flush()
 	}
 }
