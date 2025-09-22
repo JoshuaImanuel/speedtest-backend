@@ -18,8 +18,8 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 // Handler untuk tes download (versi paling stabil untuk Vercel)
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
     // --- PERUBAHAN DI SINI ---
-	// Mengurangi ukuran total menjadi 10MB untuk memastikan stabilitas
-	totalSize := 10 * 1024 * 1024      
+	// Mengurangi ukuran total menjadi 5MB untuk memastikan stabilitas maksimum
+	totalSize := 5 * 1024 * 1024      
 	chunkSize := 256 * 1024           
 	chunk := make([]byte, chunkSize)
 
