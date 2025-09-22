@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"crypto/rand"
 	"fmt"
 	"io"
 	"net/http"
@@ -15,13 +14,17 @@ func pingHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `{"status":"ok"}`)
 }
 
-// Handler untuk tes download (versi paling stabil untuk Vercel)
+// Handler untuk tes download (versi ultra ringan)
 func downloadHandler(w http.ResponseWriter, r *http.Request) {
-    // --- PERUBAHAN DI SINI ---
-	// Mengurangi ukuran total menjadi 5MB untuk memastikan stabilitas maksimum
-	totalSize := 5 * 1024 * 1024      
-	chunkSize := 256 * 1024           
+	totalSize := 15 * 1024 * 1024      // Total 15MB (ukuran yang aman)
+	chunkSize := 256 * 1024           // Potongan 256KB
+	
+	// Buat satu potongan data statis yang akan dikirim berulang kali.
+	// Ini sangat ringan dan hampir tidak menggunakan CPU.
 	chunk := make([]byte, chunkSize)
+	for i := range chunk {
+		chunk[i] = '0' // Isi dengan karakter '0'
+	}
 
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", totalSize))
@@ -33,20 +36,20 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for bytesSent := 0; bytesSent < totalSize; bytesSent += chunkSize {
+		// Menentukan ukuran potongan terakhir
 		remaining := totalSize - bytesSent
 		if remaining < chunkSize {
-			chunk = make([]byte, remaining)
+			chunk = chunk[:remaining]
 		}
-		if _, err := rand.Read(chunk); err != nil {
-			return
-		}
+		
+		// Tulis potongan data statis
 		if _, err := w.Write(chunk); err != nil {
 			return
 		}
+		
 		flusher.Flush()
 	}
 }
-
 
 // Handler untuk tes upload
 func uploadHandler(w http.ResponseWriter, r *http.Request) {
